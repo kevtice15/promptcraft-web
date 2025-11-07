@@ -56,7 +56,7 @@ A Next.js web application for organizing and managing AI image generation prompt
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/kevtice15/promptcraft-web.git
    cd promptcraft-web
    ```
 
@@ -183,22 +183,68 @@ npx prisma studio       # Open Prisma Studio
 - **Input Validation**: Server-side validation for all inputs
 - **SQL Injection Protection**: Prisma ORM prevents SQL injection
 
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+1. **Connect your GitHub repository to Vercel**
+   - Go to [vercel.com](https://vercel.com) and sign in with GitHub
+   - Import your repository: `kevtice15/promptcraft-web`
+
+2. **Configure environment variables**
+   ```bash
+   DATABASE_URL="postgresql://username:password@host:port/database"
+   JWT_SECRET="your-production-secret-key-min-32-characters"
+   NEXT_PUBLIC_APP_URL="https://your-app-domain.vercel.app"
+   ```
+
+3. **Deploy**
+   - Vercel will automatically deploy on every push to `main`
+   - Run database migrations after first deploy:
+     ```bash
+     npx prisma generate
+     npx prisma db push
+     ```
+
+### Other Platforms
+
+The app can be deployed to any platform that supports Node.js:
+- **Railway**: Connect GitHub repo and set environment variables
+- **Render**: Import from GitHub and configure build settings
+- **Digital Ocean App Platform**: Deploy from GitHub with auto-deploy
+- **AWS/Google Cloud**: Use their respective deployment services
+
+### Database Setup
+
+For production, use a managed PostgreSQL service:
+- **Supabase** (recommended for Vercel)
+- **PlanetScale** 
+- **Railway PostgreSQL**
+- **Render PostgreSQL**
+- **AWS RDS**
+
 ## 🚧 Roadmap
 
+### Recently Added Features ✅
+- ✅ Consistent TopNavigation across all pages
+- ✅ Library switching from navigation menu
+- ✅ Improved user experience and navigation flow
+
 ### Planned Features
-- [ ] Prompt templates and presets
+- [ ] Image upload and management system
+- [ ] Prompt templates and presets  
+- [ ] Library sharing and collaboration
+- [ ] Advanced search with filters
 - [ ] Bulk operations (import/export)
-- [ ] Advanced filtering options
 - [ ] Prompt history and versioning
-- [ ] Collaboration features
 - [ ] API integration for image generation
 - [ ] Mobile app
 
 ### Performance Improvements
-- [ ] Image optimization
+- [ ] Image optimization and CDN
 - [ ] Caching layer (Redis)
 - [ ] Database indexing optimization
-- [ ] CDN integration
+- [ ] Real-time collaboration features
 
 ## 📝 License
 
@@ -208,6 +254,16 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+### Development Setup for Contributors
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and test thoroughly
+4. Commit your changes: `git commit -m "Add amazing feature"`
+5. Push to your branch: `git push origin feature/amazing-feature`
+6. Open a Pull Request
+
 ---
 
 **Built with ❤️ using Next.js, TypeScript, and Tailwind CSS**
+
+🔗 **GitHub Repository**: https://github.com/kevtice15/promptcraft-web
