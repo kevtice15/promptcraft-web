@@ -1,0 +1,180 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  password      String
+  name          String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  libraries     Library[]
+  savedSearches SavedSearch[]
+  sharedLibraries LibraryShare[] @relation("SharedWith")
+  invitedLibraries LibraryShare[] @relation("SharedBy")
+  libraryInvites LibraryInvite[]
+  activities    Activity[]
+}
+
+model Library {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  color        String   @default("#3b82f6")
+  isPrivate    Boolean  @default(false)
+  passwordHash String?
+  passwordHint String?
+  ownerId      String   // renamed from userId for clarity
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  owner      User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  groups     Group[]
+  shares     LibraryShare[]
+  invites    LibraryInvite[]
+  activities Activity[]
+  
+  @@index([ownerId])
+  @@index([isPrivate])
+}
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  libraryId   String
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  library Library  @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+  prompts Prompt[]
+  
+  @@index([libraryId])
+}
+
+model Prompt {
+  id               String   @id @default(cuid())
+  positivePrompt   String   @db.Text
+  negativePrompt   String?  @db.Text
+  notes            String?  @db.Text
+  isFavorite       Boolean  @default(false)
+  steps            Int      @default(20)
+  cfgScale         Float    @default(7.0)
+  sampler          String   @default("Euler a")
+  model            String   @default("SD 1.5")
+  seed             BigInt?
+  width            Int      @default(512)
+  height           Int      @default(512)
+  hasTemplate      Boolean  @default(false)
+  wildcardCount    Int      @default(0)
+  templateMetadata Json?
+  groupId          String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  group  Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  images ImageReference[]
+  
+  @@index([groupId])
+  @@index([isFavorite])
+  @@index([createdAt])
+  @@index([hasTemplate])
+}
+
+model ImageReference {
+  id               String   @id @default(cuid())
+  promptId         String
+  fileName         String
+  originalFileName String
+  type             String   // reference, style, composition, lighting, mood, color
+  description      String?
+  weight           Float    @default(1.0)
+  fileSize         Int
+  width            Int
+  height           Int
+  thumbnailUrl     String
+  originalUrl      String
+  uploadedBy       String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  prompt Prompt @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  
+  @@index([promptId])
+  @@index([type])
+}
+
+model SavedSearch {
+  id        String   @id @default(cuid())
+  name      String
+  userId    String
+  libraryId String?  // null = search all libraries
+  filters   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+model LibraryShare {
+  id         String   @id @default(cuid())
+  libraryId  String
+  userId     String
+  permission String   // read, write, admin
+  invitedBy  String
+  createdAt  DateTime @default(now())
+  acceptedAt DateTime?
+  
+  library   Library @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+  user      User    @relation("SharedWith", fields: [userId], references: [id], onDelete: Cascade)
+  inviter   User    @relation("SharedBy", fields: [invitedBy], references: [id])
+  
+  @@unique([libraryId, userId])
+  @@index([userId])
+  @@index([libraryId])
+}
+
+model LibraryInvite {
+  id         String   @id @default(cuid())
+  libraryId  String
+  email      String
+  permission String
+  invitedBy  String
+  token      String   @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime @default(now())
+  
+  library Library @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+  inviter User    @relation(fields: [invitedBy], references: [id])
+  
+  @@index([email])
+  @@index([libraryId])
+}
+
+model Activity {
+  id         String   @id @default(cuid())
+  libraryId  String
+  userId     String
+  action     String   // created_prompt, edited_prompt, deleted_prompt, etc.
+  entityType String   // prompt, group, library
+  entityId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  
+  library Library @relation(fields: [libraryId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id])
+  
+  @@index([libraryId, createdAt])
+  @@index([userId])
+}
