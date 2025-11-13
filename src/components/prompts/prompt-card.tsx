@@ -18,14 +18,16 @@ interface PromptCardProps {
   onDelete: (promptId: string) => void
   onToggleFavorite: (promptId: string, isFavorite: boolean) => void
   onCopy: (text: string, type: string) => void
+  onClick?: (prompt: PromptWithGroupAndImages) => void
 }
 
-export function PromptCard({ 
-  prompt, 
-  onEdit, 
-  onDelete, 
-  onToggleFavorite, 
-  onCopy 
+export function PromptCard({
+  prompt,
+  onEdit,
+  onDelete,
+  onToggleFavorite,
+  onCopy,
+  onClick
 }: PromptCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -79,6 +81,12 @@ export function PromptCard({
     setLightboxOpen(true)
   }
 
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick(prompt)
+    }
+  }
+
   // Analyze template (use saved data if available, otherwise analyze on the fly)
   const templateAnalysis = prompt.hasTemplate 
     ? {
@@ -91,9 +99,12 @@ export function PromptCard({
     : analyzeTemplate(prompt.positivePrompt)
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className={`hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer' : ''}`}>
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
+        <div
+          className="flex items-start justify-between"
+          onClick={handleCardClick}
+        >
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="secondary" className="text-xs">
@@ -161,10 +172,13 @@ export function PromptCard({
             )}
             
             <button
-              onClick={handleToggleFavorite}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleToggleFavorite()
+              }}
               className={`p-1 rounded transition-colors ${
-                prompt.isFavorite 
-                  ? 'text-yellow-500 hover:text-yellow-600' 
+                prompt.isFavorite
+                  ? 'text-yellow-500 hover:text-yellow-600'
                   : 'text-gray-400 hover:text-yellow-500'
               }`}
             >
@@ -174,7 +188,10 @@ export function PromptCard({
             </button>
             
             <button
-              onClick={() => setIsExpanded(!isExpanded)}
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsExpanded(!isExpanded)
+              }}
               className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <svg 

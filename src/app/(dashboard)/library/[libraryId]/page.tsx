@@ -8,8 +8,9 @@ import { PromptList } from '@/components/prompts/prompt-list'
 import { PromptSearch } from '@/components/prompts/prompt-search'
 import { CreatePromptModal } from '@/components/prompts/create-prompt-modal'
 import { EditPromptModal } from '@/components/prompts/edit-prompt-modal'
+import { PromptDetailsPanel } from '@/components/prompts/prompt-details-panel'
 import { LibrarySharingPanel } from '@/components/sharing/library-sharing-panel'
-import { SessionUser, LibraryWithGroups, PromptWithGroup } from '@/types'
+import { SessionUser, LibraryWithGroups, PromptWithGroup, PromptWithGroupAndImages } from '@/types'
 
 export default function LibraryPage() {
   const params = useParams()
@@ -23,6 +24,7 @@ export default function LibraryPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingPrompt, setEditingPrompt] = useState<PromptWithGroup | null>(null)
+  const [selectedPrompt, setSelectedPrompt] = useState<PromptWithGroupAndImages | null>(null)
   const [loading, setLoading] = useState(true)
   const [libraryAccessible, setLibraryAccessible] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -122,6 +124,34 @@ export default function LibraryPage() {
     setRefreshKey(prev => prev + 1) // Trigger refresh
   }
 
+  const handlePromptClick = (prompt: PromptWithGroupAndImages) => {
+    setSelectedPrompt(prompt)
+  }
+
+  const handlePanelClose = () => {
+    setSelectedPrompt(null)
+  }
+
+  const handlePanelUpdate = () => {
+    setRefreshKey(prev => prev + 1) // Trigger refresh
+    // Re-fetch the selected prompt to show updated data
+    if (selectedPrompt) {
+      fetchUpdatedPrompt(selectedPrompt.id)
+    }
+  }
+
+  const fetchUpdatedPrompt = async (promptId: string) => {
+    try {
+      const response = await fetch(`/api/prompts/${promptId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setSelectedPrompt(data.prompt)
+      }
+    } catch (error) {
+      console.error('Failed to fetch updated prompt:', error)
+    }
+  }
+
   if (loading || !user || !library) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -147,7 +177,7 @@ export default function LibraryPage() {
         />
       }
     >
-      <div className="p-6 max-w-4xl">
+      <div className={`p-6 transition-all duration-300 ${selectedPrompt ? 'max-w-7xl' : 'max-w-4xl'}`}>
         {/* Search Bar and Navigation */}
         <div className="mb-6 space-y-4">
           <PromptSearch
@@ -217,6 +247,7 @@ export default function LibraryPage() {
               onlyTemplates={showTemplatesOnly}
               onCreatePrompt={handleCreatePrompt}
               onEditPrompt={handleEditPrompt}
+              onPromptClick={handlePromptClick}
             />
           ) : (
             <div className="text-center py-12">
@@ -271,6 +302,15 @@ export default function LibraryPage() {
           onSuccess={handlePromptSuccess}
         />
       </div>
+
+      {/* Prompt Details Side Panel */}
+      {selectedPrompt && (
+        <PromptDetailsPanel
+          prompt={selectedPrompt}
+          onClose={handlePanelClose}
+          onUpdate={handlePanelUpdate}
+        />
+      )}
     </MainLayout>
   )
 }

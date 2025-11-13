@@ -13,16 +13,18 @@ interface PromptListProps {
   onlyTemplates?: boolean
   onCreatePrompt: () => void
   onEditPrompt: (prompt: PromptWithGroupAndImages) => void
+  onPromptClick?: (prompt: PromptWithGroupAndImages) => void
 }
 
-export function PromptList({ 
-  groupId, 
-  libraryId, 
-  searchQuery, 
+export function PromptList({
+  groupId,
+  libraryId,
+  searchQuery,
   onlyFavorites = false,
   onlyTemplates = false,
-  onCreatePrompt, 
-  onEditPrompt 
+  onCreatePrompt,
+  onEditPrompt,
+  onPromptClick
 }: PromptListProps) {
   const [prompts, setPrompts] = useState<PromptWithGroupAndImages[]>([])
   const [loading, setLoading] = useState(true)
@@ -205,6 +207,7 @@ export function PromptList({
               onDelete={handleDelete}
               onToggleFavorite={handleToggleFavorite}
               onCopy={handleCopy}
+              onClick={onPromptClick}
             />
           ))}
         </div>
